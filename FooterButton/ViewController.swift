@@ -36,7 +36,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 5
+        return 15
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -48,11 +48,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
 
     override func viewDidLayoutSubviews() {
-        tableView.isScrollEnabled = tableView.contentSize.height > tableView.bounds.size.height
         let insets = UIEdgeInsets(top: 0, left: 0, bottom: footerView.bounds.height, right: 0)
         tableView.contentInset = insets
         tableView.scrollIndicatorInsets = insets
+        tableView.isScrollEnabled = tableView.contentSize.height > tableView.bounds.size.height - insets.bottom
     }
     
 }
-
