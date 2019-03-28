@@ -35,7 +35,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     private var pinFooterConstraints = [NSLayoutConstraint]()
     private var numberOfRows = 1
     private var layoutRequired = true
-    private var shouldPin = true
+    private var pinBehaviour: PinBehaviour = .always
+    
+    private enum PinBehaviour: String, CaseIterable {
+        case always, never, whenFull
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -129,7 +133,7 @@ private extension ViewController {
         // Content scrolls. If pin - view, if not pin, table footer view
         // Content does not
         
-        if shouldPin || !shouldPin && shouldContentScroll {
+        if pinBehaviour == .always || pinBehaviour == .whenFull && shouldContentScroll {
             view.addSubview(pinnedFooterView)
             pinFooterConstraints.forEach({ $0.isActive = true })
             tableView.contentInset = footerInsets
@@ -184,7 +188,10 @@ private extension ViewController {
     }
     
     @objc func pinUnpin() {
-        shouldPin = !shouldPin
+        var pindex = PinBehaviour.allCases.firstIndex(of: pinBehaviour)!
+        pindex = (pindex + 1) % PinBehaviour.allCases.count
+        pinBehaviour = PinBehaviour.allCases[pindex]
+        title = pinBehaviour.rawValue
         tableView.reloadData()
     }
     
