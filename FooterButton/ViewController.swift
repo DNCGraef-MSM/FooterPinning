@@ -35,9 +35,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     private var pinFooterConstraints = [NSLayoutConstraint]()
     private var numberOfRows = 1
     private var layoutRequired = true
+    private var shouldPin = true
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(pinUnpin))
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(generateNext))
         createTableView()
         createPinnedFooterView()
@@ -124,13 +126,16 @@ private extension ViewController {
         let anchoredFooterInset = UIEdgeInsets(top: 0, left: 0, bottom: pinnedFooterView.bounds.height, right: 0)
         let shouldContentScroll = tableView.contentSize.height > tableView.bounds.size.height - anchoredFooterInset.bottom
         
-        if !shouldContentScroll {
+        // Content scrolls. If pin - view, if not pin, table footer view
+        // Content does not
+        
+        if shouldPin || !shouldPin && shouldContentScroll {
             view.addSubview(pinnedFooterView)
             pinFooterConstraints.forEach({ $0.isActive = true })
             tableView.contentInset = anchoredFooterInset
             tableView.scrollIndicatorInsets = anchoredFooterInset
             tableView.tableFooterView = nil
-            tableView.isScrollEnabled = false
+            tableView.isScrollEnabled = shouldContentScroll
         } else {
             pinFooterConstraints.forEach({ $0.isActive = false })
             pinnedFooterView.removeFromSuperview()
@@ -175,6 +180,11 @@ private extension ViewController {
     
     @objc func generateNext() {
         numberOfRows = (numberOfRows + 1) % 20
+        tableView.reloadData()
+    }
+    
+    @objc func pinUnpin() {
+        shouldPin = !shouldPin
         tableView.reloadData()
     }
     
