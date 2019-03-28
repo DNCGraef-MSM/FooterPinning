@@ -123,8 +123,8 @@ private extension ViewController {
         
         guard layoutRequired else { return }
         
-        let anchoredFooterInset = UIEdgeInsets(top: 0, left: 0, bottom: pinnedFooterView.bounds.height, right: 0)
-        let shouldContentScroll = tableView.contentSize.height > tableView.bounds.size.height - anchoredFooterInset.bottom
+        let footerInsets = UIEdgeInsets(top: 0, left: 0, bottom: pinnedFooterView.bounds.height, right: 0)
+        let shouldContentScroll = (tableView.contentSize.height - (tableView.tableFooterView?.bounds.height ?? 0)) + footerInsets.bottom > tableView.bounds.size.height
         
         // Content scrolls. If pin - view, if not pin, table footer view
         // Content does not
@@ -132,8 +132,8 @@ private extension ViewController {
         if shouldPin || !shouldPin && shouldContentScroll {
             view.addSubview(pinnedFooterView)
             pinFooterConstraints.forEach({ $0.isActive = true })
-            tableView.contentInset = anchoredFooterInset
-            tableView.scrollIndicatorInsets = anchoredFooterInset
+            tableView.contentInset = footerInsets
+            tableView.scrollIndicatorInsets = footerInsets
             tableView.tableFooterView = nil
             tableView.isScrollEnabled = shouldContentScroll
         } else {
@@ -143,7 +143,7 @@ private extension ViewController {
             tableView.scrollIndicatorInsets = UIEdgeInsets.zero
             tableView.tableFooterView = tableFooterView
             sizeFooterToFit()
-            tableView.isScrollEnabled = true
+            tableView.isScrollEnabled = shouldContentScroll
         }
         
         layoutRequired = false
