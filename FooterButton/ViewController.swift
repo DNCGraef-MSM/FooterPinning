@@ -61,29 +61,31 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor).isActive = true
         tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor).isActive = true
         tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
-        tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+        tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
     }
     
     private func createPinnedFooterView() {
-        pinnedFooterView = UIView()
+        pinnedFooterView = loadFooterView()
         pinnedFooterView.translatesAutoresizingMaskIntoConstraints = false
-        pinnedFooterView.backgroundColor = .purple
-        setHeight(150, view: pinnedFooterView)
         
         pinFooterConstraints.append(contentsOf: [
             pinnedFooterView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             pinnedFooterView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            pinnedFooterView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            pinnedFooterView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
             ]
         )
     }
     
     private func createTableFooterView() {
-        tableFooterView = UIView()
-        tableFooterView.backgroundColor = .yellow
-        setHeight(150, view: tableFooterView)
+        tableFooterView = loadFooterView()
+        tableFooterView.translatesAutoresizingMaskIntoConstraints = true
+    }
+    
+    private func loadFooterView() -> UIView {
+        guard let loaded = Bundle.main.loadNibNamed("FooterView", owner: nil, options: nil)?.first as? UIView else { fatalError() }
+        return loaded
     }
     
     private func setHeight(_ height: CGFloat, view: UIView) {
@@ -127,8 +129,9 @@ private extension ViewController {
         
         guard layoutRequired else { return }
         
-        let footerInsets = UIEdgeInsets(top: 0, left: 0, bottom: pinnedFooterView.bounds.height, right: 0)
-        let shouldContentScroll = (tableView.contentSize.height - (tableView.tableFooterView?.bounds.height ?? 0)) + footerInsets.bottom > tableView.bounds.size.height
+        let safeAreaBottom = view.safeAreaInsets.bottom
+        let footerInsets = UIEdgeInsets(top: 0, left: 0, bottom: pinnedFooterView.bounds.height - safeAreaBottom, right: 0)
+        let shouldContentScroll = (tableView.contentSize.height - (tableView.tableFooterView?.bounds.height ?? 0)) + footerInsets.bottom > tableView.bounds.size.height - safeAreaBottom
         
         // Content scrolls. If pin - view, if not pin, table footer view
         // Content does not
