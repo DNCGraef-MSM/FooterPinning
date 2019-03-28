@@ -33,12 +33,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     private var tableFooterView: UIView!
     
     private var pinFooterConstraints = [NSLayoutConstraint]()
-    private var numberOfRows = 20
+    private var numberOfRows = 1
     private var layoutRequired = true
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(randomise))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(generateNext))
         createTableView()
         createPinnedFooterView()
         createTableFooterView()
@@ -49,7 +49,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tableView.dataSource = self
         tableView.delegate = self
         tableView.layoutPass = styleFooter
-        
+        tableView.willReload = willReloadTableView
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor).isActive = true
@@ -173,8 +173,8 @@ private extension ViewController {
         }
     }
     
-    @objc func randomise() {
-        numberOfRows = Int(arc4random_uniform(30))
+    @objc func generateNext() {
+        numberOfRows = (numberOfRows + 1) % 20
         tableView.reloadData()
     }
     
