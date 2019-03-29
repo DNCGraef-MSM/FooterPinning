@@ -36,6 +36,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     private var numberOfRows = 1
     private var layoutRequired = true
     private var pinBehaviour: PinBehaviour = .always
+    private var footerButtonShown = true
     
     private enum PinBehaviour: String, CaseIterable {
         case always, never, whenFull
@@ -43,8 +44,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        navigationItem.rightBarButtonItems = [
+            UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(showHide)),
+            UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(generateNext))
+        ]
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(pinUnpin))
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(generateNext))
         createTableView()
         createPinnedFooterView()
         createTableFooterView()
@@ -130,19 +134,21 @@ private extension ViewController {
         guard layoutRequired else { return }
         
         let safeAreaBottom = view.safeAreaInsets.bottom
-        let footerInsets = UIEdgeInsets(top: 0, left: 0, bottom: pinnedFooterView.bounds.height - safeAreaBottom, right: 0)
-        let shouldContentScroll = (tableView.contentSize.height - (tableView.tableFooterView?.bounds.height ?? 0)) + footerInsets.bottom > tableView.bounds.size.height - safeAreaBottom
+        let footerInsets = UIEdgeInsets(top: 0, left: 0, bottom: footerButtonShown ? pinnedFooterView.bounds.height - safeAreaBottom : 0, right: 0)
+        let tableFooterHeight = footerButtonShown ? tableView.tableFooterView?.bounds.height ?? 0 : 0
+        let shouldContentScroll = tableView.contentSize.height - tableFooterHeight + footerInsets.bottom > tableView.bounds.size.height - safeAreaBottom
         
-        // Content scrolls. If pin - view, if not pin, table footer view
-        // Content does not
-        
-        if pinBehaviour == .always || pinBehaviour == .whenFull && shouldContentScroll {
+        if !footerButtonShown {
+            pinnedFooterView.removeFromSuperview()
+            tableView.tableFooterView = nil
+            tableView.contentInset = UIEdgeInsets.zero
+            tableView.scrollIndicatorInsets = UIEdgeInsets.zero
+        } else if pinBehaviour == .always || pinBehaviour == .whenFull && shouldContentScroll {
             view.addSubview(pinnedFooterView)
             pinFooterConstraints.forEach({ $0.isActive = true })
             tableView.contentInset = footerInsets
             tableView.scrollIndicatorInsets = footerInsets
             tableView.tableFooterView = nil
-            tableView.isScrollEnabled = shouldContentScroll
         } else {
             pinFooterConstraints.forEach({ $0.isActive = false })
             pinnedFooterView.removeFromSuperview()
@@ -150,9 +156,9 @@ private extension ViewController {
             tableView.scrollIndicatorInsets = UIEdgeInsets.zero
             tableView.tableFooterView = tableFooterView
             sizeFooterToFit()
-            tableView.isScrollEnabled = shouldContentScroll
         }
         
+        tableView.isScrollEnabled = shouldContentScroll
         layoutRequired = false
     }
     
@@ -187,6 +193,11 @@ private extension ViewController {
     
     @objc func generateNext() {
         numberOfRows = (numberOfRows + 1) % 20
+        tableView.reloadData()
+    }
+    
+    @objc func showHide() {
+        footerButtonShown = !footerButtonShown
         tableView.reloadData()
     }
     
